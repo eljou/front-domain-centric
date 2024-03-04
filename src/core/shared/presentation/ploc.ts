@@ -15,29 +15,20 @@ export function makePloc<S>(initialState: S): Ploc<S> {
     state: () => internalState,
 
     changeState: (state) => {
-      console.log(
-        "🚀 ~ file: ploc.ts:32 ~ changeState ~ state:",
-        internalState,
-        "->",
-        state
-      );
+      console.group(" <:> change state: ");
+      console.log(internalState, "->", state);
+      console.groupEnd();
       internalState = state;
       listeners.forEach((l) => l(state));
     },
 
     subscribe: (l) => {
       listeners.push(l);
-      console.log(
-        "(++) ~ file: ploc.ts:24 ~ ",
-        internalState,
-        listeners.length
-      );
     },
 
     unsubscribe: (l) => {
       const index = listeners.indexOf(l);
       if (index > -1) listeners.splice(index, 1);
-      console.log("(--) ~ file: ploc.ts:29 ~ ", internalState);
     },
   };
 }

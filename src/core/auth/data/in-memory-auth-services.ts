@@ -4,8 +4,15 @@ import { LoginService } from "../domain/auth-services";
 import { DataError } from "../../shared/domain/data-error";
 
 export const makeLoginService = (): LoginService => {
-  return (username) =>
-    Task.fromLazyPromise<DataError, void>(() => delay(500)).map(() =>
-      console.log(`Logged in user: ${username}`)
-    );
+  return (email) =>
+    Task.fromLazyPromise<DataError, void>(() => delay(500)).map(() => ({
+      accessToken: "dummytoken",
+      user: {
+        id: "1",
+        avatar: "http://avatar.com",
+        clientAppIds: [],
+        email,
+        username: "Jhon",
+      },
+    }));
 };

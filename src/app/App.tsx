@@ -1,25 +1,14 @@
-import { AppBar } from "./appbar/app-bar";
-import CartDrawer from "./cart/cart-drawer";
-import ProductList from "./products/product-list";
 import { Outlet, Route, Routes } from "react-router-dom";
+import { AppBar } from "./appbar/app-bar";
 import { AuthProvider } from "./auth/auth-provider";
 import LoginPage from "./auth/login-page";
 import RequireAuth from "./auth/require-auth";
 import PostsPage from "./posts/posts-page";
-import { PostsProvider } from "./posts/posts-context";
 import { CartProvider } from "./cart/cart-context";
-
-function ShoppingCart() {
-  return (
-    <main className="mx-auto my-0 w-5/6">
-      <CartDrawer>
-        <div>
-          <ProductList />
-        </div>
-      </CartDrawer>
-    </main>
-  );
-}
+import RegisterPage from "./auth/register-page";
+import { ShoppingCart } from "./cart/shopping-cart";
+import { HomePage } from "./HomePage";
+import { ClientAppPage } from "./client-apps/client-app-page";
 
 function Layout() {
   return (
@@ -30,41 +19,18 @@ function Layout() {
   );
 }
 
-function PublicPage() {
-  return (
-    <div className="hero min-h-screen bg-base-200">
-      <div className="hero-content text-center">
-        <div className="max-w-md">
-          <h1 className="text-5xl font-bold">Hello there</h1>
-          <p className="py-6">
-            Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda
-            excepturi exercitationem quasi. In deleniti eaque aut repudiandae et
-            a id nisi.
-          </p>
-          <button className="btn btn-primary">Get Started</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   return (
     <AuthProvider>
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<PublicPage />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route element={<RequireAuth />}>
+            <Route path="/app/:id" element={<ClientAppPage />} />
             <Route path="/products" element={<ShoppingCart />} />
-            <Route
-              path="/posts"
-              element={
-                <PostsProvider>
-                  <PostsPage />
-                </PostsProvider>
-              }
-            />
+            <Route path="/posts" element={<PostsPage />} />
           </Route>
         </Route>
       </Routes>

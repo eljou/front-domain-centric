@@ -3,9 +3,9 @@ import { Ploc } from "../../core/shared/presentation/ploc";
 
 export const useZustandPlocState = <S>(
   ploc: Ploc<S>,
-  useProductsStore: () => { state: S; setState: (newState: S) => void }
+  usePlocStore: () => { state: S; setState: (newState: S) => void }
 ) => {
-  const { state, setState } = useProductsStore();
+  const { state, setState } = usePlocStore();
 
   useEffect(() => {
     const updateState = (st: S) => setState(st);

@@ -1,9 +1,9 @@
 import type { FC } from "react";
-import { usePostsCtx } from "./posts-context";
 import { match } from "ts-pattern";
+import { PostState } from "../../core/posts/infrastructure/presentation/posts-state";
 
-const Sidebar: FC = () => {
-  const { state } = usePostsCtx();
+const Sidebar: FC<{ state: PostState }> = (props) => {
+  const { state } = props;
 
   return (
     <div>

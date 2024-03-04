@@ -1,12 +1,20 @@
 import { useEffect, type FC } from "react";
 import { match } from "ts-pattern";
+import { dependenciesLocator } from "../../core/shared/dependecies";
 import { Post } from "../../core/posts/domain/post";
 import { PostState } from "../../core/posts/infrastructure/presentation/posts-state";
-import { usePostsCtx } from "./posts-context";
+import { usePlocState } from "../shared/use-ploc-state";
 import Sidebar from "./sidebar";
 
+const postsPloc = dependenciesLocator.providePostsPloc();
+function usePosts() {
+  const state = usePlocState(postsPloc);
+
+  return { state, getByUserId: postsPloc.getByUserId };
+}
+
 function PostsPage() {
-  const { state, getByUserId } = usePostsCtx();
+  const { state, getByUserId } = usePosts();
 
   useEffect(() => {
     getByUserId(1);
@@ -20,7 +28,7 @@ function PostsPage() {
       <div className="divider divider-horizontal"></div>
 
       <div className="basis-1/4">
-        <Sidebar />
+        <Sidebar state={state} />
       </div>
     </div>
   );

@@ -1,11 +1,9 @@
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useMemo } from "react";
 import { CartPloc } from "../../core/cart/presentation/cart-ploc";
 import { CartState } from "../../core/cart/presentation/cart-state";
 import { dependenciesLocator } from "../../core/shared/dependecies";
 import { createContext } from "../shared/context";
 import { usePlocState } from "../shared/use-ploc-state";
-
-const cartPloc = dependenciesLocator.provideCartPloc();
 
 type CartContext = Omit<
   CartPloc,
@@ -15,6 +13,7 @@ type CartContext = Omit<
 const [CartCtx, useContext] = createContext<CartContext>();
 
 export function CartProvider({ children }: PropsWithChildren) {
+  const cartPloc = useMemo(() => dependenciesLocator.provideCartPloc(), []);
   const {
     closeCart,
     openCart,

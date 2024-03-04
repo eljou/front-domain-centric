@@ -8,7 +8,7 @@ export default function AuthStatus() {
 
   return (
     <div className="mx-3">
-      {auth.state.kind == "auth:in" ? (
+      {auth.state.kind == "user:in" ? (
         <div className="flex">
           <ShoppingCart />
           <div className="dropdown dropdown-end">
@@ -29,7 +29,7 @@ export default function AuthStatus() {
               className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52"
             >
               <li>
-                <a className="justify-between">{auth.state.username}</a>
+                <a className="justify-between">{auth.state.user.username}</a>
               </li>
               <li>
                 <a
@@ -44,7 +44,10 @@ export default function AuthStatus() {
           </div>
         </div>
       ) : (
-        <Link to="login">Login</Link>
+        <div className="w-[120px] flex justify-between">
+          <Link to="login">Login</Link>
+          <Link to="register">Register</Link>
+        </div>
       )}
     </div>
   );

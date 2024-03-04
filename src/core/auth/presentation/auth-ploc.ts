@@ -1,38 +1,80 @@
 import { Ploc, makePloc } from "../../shared/presentation/ploc";
+import { User } from "../domain/user";
 import { LoginUseCase } from "../domain/usecases/login";
+import { Task } from "data.task.ts";
+import { UserByIdUseCase } from "../domain/usecases/get-user-by-id";
 
 export type AuthState =
-  | { kind: "auth:out" }
-  | { kind: "auth:in"; username: string }
-  | { kind: "auth:loggin-in"; username: string }
-  | { kind: "auth:error"; errorMsg: string };
+  | { kind: "user:out" }
+  | { kind: "user:loggin-in" }
+  | { kind: "user:in"; user: User; accessToken: string }
+  | { kind: "user:error"; errorMsg: string };
 
-export const authInitialState: AuthState = { kind: "auth:out" };
+export const authInitialState: AuthState = { kind: "user:out" };
 
 // ----
-
 export type AuthPloc = Ploc<AuthState> & {
-  login: (username: string) => Promise<void>;
+  setLoggedIn: (accessToken: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
-export function makeAuthPloc(loginUseCase: LoginUseCase): AuthPloc {
+export function makeAuthPloc(
+  loginUseCase: LoginUseCase,
+  getUserById: UserByIdUseCase
+): AuthPloc {
   const ploc = makePloc(authInitialState);
+  const extractUserFromToken = (token: string): User => {
+    const obj = JSON.parse(atob(token.split(".")[1]));
+    console.log("🚀 ~ extractUserFromToken ~ obj:", obj);
+
+    return {
+      id: obj.id,
+      username: obj.username,
+      email: obj.email,
+      avatar: obj.avatar,
+      clientAppIds: obj.clientAppIds,
+    } as unknown as User;
+  };
 
   return {
     ...ploc,
-    login: async (username) => {
-      ploc.changeState({ kind: "auth:loggin-in", username });
-      await loginUseCase(username)
-        .rejectMap((err) =>
-          ploc.changeState({ kind: "auth:error", errorMsg: err.error.message })
+
+    setLoggedIn: async (accessToken: string) => {
+      const user = extractUserFromToken(accessToken);
+
+      await getUserById(user.id)
+        .map((user) => ploc.changeState({ kind: "user:in", user, accessToken }))
+        .orElse((err) =>
+          Task.of(
+            ploc.changeState({
+              kind: "user:error",
+              errorMsg: err.error.message,
+            })
+          )
         )
-        .map(() => ploc.changeState({ kind: "auth:in", username }))
+        .toPromise();
+    },
+
+    login: async (email, password) => {
+      ploc.changeState({ kind: "user:loggin-in" });
+      await loginUseCase(email, password)
+        .map((res) => {
+          ploc.changeState({ kind: "user:in", ...res });
+        })
+        .orElse((err) =>
+          Task.of(
+            ploc.changeState({
+              kind: "user:error",
+              errorMsg: err.error.message,
+            })
+          )
+        )
         .toPromise();
     },
 
     logout: async () => {
-      ploc.changeState({ kind: "auth:out" });
+      ploc.changeState({ kind: "user:out" });
     },
   };
 }

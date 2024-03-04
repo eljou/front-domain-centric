@@ -1,1 +1,7 @@
-export type User = { username: string };
+export type User = {
+  id: string;
+  username: string;
+  email: string;
+  avatar: string;
+  clientAppIds: string[];
+};

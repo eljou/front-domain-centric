@@ -7,19 +7,25 @@ import ProductItem from "./product-item";
 import { useProductsStore } from "./products-store";
 
 const ploc = dependenciesLocator.provideProductsPloc();
+function useProducts() {
+  const state = useZustandPlocState(ploc, useProductsStore);
+
+  return { state, search: ploc.search };
+}
 
 const ProductList: React.FC = () => {
   const cart = useCart();
-  const state = useZustandPlocState(ploc, useProductsStore);
+  const { state, search } = useProducts();
 
   const [term, setTerm] = useState("");
   const searchProducts = useCallback(
-    (filter: string) => ploc.search(filter),
+    (filter: string) => search(filter),
     [term]
   );
 
   useEffect(() => {
-    searchProducts(term);
+    if (state.kind == "products:error" || state.kind == "products:loading")
+      searchProducts(term);
   }, []);
 
   return (

@@ -1,12 +1,32 @@
-import { makeLoginService } from "../../auth/data/in-memory-auth-services";
+// import { makeLoginService } from "../../auth/data/in-memory-auth-services";
+import {
+  makeGetUserById,
+  makeRestLoginService,
+  makeRestRegisterService,
+} from "../../auth/data/rest-auth-services";
+import { makeUserByIdUseCase } from "../../auth/domain/usecases/get-user-by-id";
 import { makeLoginUseCase } from "../../auth/domain/usecases/login";
+import { makeRegisterUseCase } from "../../auth/domain/usecases/register";
 import { AuthPloc, makeAuthPloc } from "../../auth/presentation/auth-ploc";
+import {
+  RegistrationPloc,
+  makeRegistrationPloc,
+} from "../../auth/presentation/registration-ploc";
 import { makeCartInMemoryRepository } from "../../cart/data/in-memory-cart-repo";
 import { makeAddProductToCartUseCase } from "../../cart/domain/use-cases/add-product-to-cart";
 import { makeEditQuantityOfCartItemUseCase } from "../../cart/domain/use-cases/edit-quantity-of-cart-item";
 import { makeGetCartUseCase } from "../../cart/domain/use-cases/get-cart";
 import { makeRemoveProductFromCartUseCase } from "../../cart/domain/use-cases/remove-product-from-cart";
 import { CartPloc, makeCartPloc } from "../../cart/presentation/cart-ploc";
+import { makeCreateApplication } from "../../client-apps/domain/usecases/create-application";
+import { makeFetchUserAppsUseCase } from "../../client-apps/domain/usecases/fetch-user-apps";
+import { makeClientAppsRestRepository } from "../../client-apps/infrastructure/client-apps-rest-repository";
+import {
+  AppsPloc,
+  makeAppsPloc,
+} from "../../client-apps/infrastructure/presentation/apps-ploc";
+import { ClientAppsPloC } from "../../client-apps/infrastructure/presentation/client-apps-ploc";
+
 import { makeGetPostsByUser } from "../../posts/domain/usecases/get-posts-by-user";
 import { makePostsRestRepository } from "../../posts/infrastructure/posts-rest-repository";
 import {
@@ -19,6 +39,12 @@ import {
   ProductsPloc,
   makeProductsPloc,
 } from "../../product/presentation/products-ploc";
+
+function providePostsPloc(): PostsPloc {
+  const postsRepository = makePostsRestRepository();
+  const getPostsByUser = makeGetPostsByUser(postsRepository);
+  return makePostsPloc(getPostsByUser);
+}
 
 function provideProductsPloc(): ProductsPloc {
   const productRepository = makeProductInMemoryRepository();
@@ -46,23 +72,41 @@ function provideCartPloc(): CartPloc {
   return cartPloc;
 }
 
+const clientAppsRepo = makeClientAppsRestRepository();
+
 function provideAuthPloc(): AuthPloc {
-  const loginService = makeLoginService();
-  const loginUseCase = makeLoginUseCase(loginService);
-  const authPloc = makeAuthPloc(loginUseCase);
+  const restLoginService = makeRestLoginService();
+
+  const loginUseCase = makeLoginUseCase(restLoginService);
+  const authPloc = makeAuthPloc(
+    loginUseCase,
+    makeUserByIdUseCase(makeGetUserById())
+  );
 
   return authPloc;
 }
 
-function providePostsPloc(): PostsPloc {
-  const postsRepository = makePostsRestRepository();
-  const getPostsByUser = makeGetPostsByUser(postsRepository);
-  return makePostsPloc(getPostsByUser);
+function provideAppsPloc(): AppsPloc {
+  return makeAppsPloc(
+    makeCreateApplication(clientAppsRepo),
+    makeFetchUserAppsUseCase(clientAppsRepo)
+  );
+}
+
+function provideClientAppsPloc(): ClientAppsPloC {
+  return new ClientAppsPloC(makeFetchUserAppsUseCase(clientAppsRepo));
+}
+
+function provideRegisterPLoc(): RegistrationPloc {
+  return makeRegistrationPloc(makeRegisterUseCase(makeRestRegisterService()));
 }
 
 export const dependenciesLocator = {
   provideProductsPloc,
   provideCartPloc,
-  provideAuthPloc,
   providePostsPloc,
+  provideAuthPloc,
+  provideRegisterPLoc,
+  provideAppsPloc,
+  provideClientAppsPloc,
 };
