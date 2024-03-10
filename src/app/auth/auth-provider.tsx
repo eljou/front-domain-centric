@@ -15,21 +15,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     if (state.kind == "user:out") {
-      const token = localStorage.getItem("token");
-      if (token) {
-        restClient.setAuthroizationToken("Bearer", token);
-        authPloc.setLoggedIn(token).then(() => {});
-      }
+      authPloc.setLoggedIn("token").then(() => {});
     }
 
     if (state.kind == "user:error") {
-      localStorage.removeItem("token");
       restClient.removeAuthorizationToken();
     }
 
     if (state.kind == "user:in") {
-      localStorage.setItem("token", state.accessToken);
       restClient.setAuthroizationToken("Bearer", state.accessToken);
+      restClient.useRefreshAccessToken();
     }
   }, [state]);
 

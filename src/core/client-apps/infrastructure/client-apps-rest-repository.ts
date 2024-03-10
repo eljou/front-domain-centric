@@ -28,5 +28,15 @@ export const makeClientAppsRestRepository = (): ClientAppsRepository => {
           (unk): DataError => ({ error: unk as Error, kind: "UnexpectedError" })
         );
     },
+
+    updateById: (id, params) =>
+      Task.fromLazyPromise(() =>
+        restClient.mutate(`/client-app/${id}`, { mode: "update", body: params })
+      )
+        .chain((res) => Task.fromLazyPromise(() => res.json()))
+        .map(pipe(tap((response) => console.log({ response }))))
+        .rejectMap(
+          (unk): DataError => ({ error: unk as Error, kind: "UnexpectedError" })
+        ),
   };
 };

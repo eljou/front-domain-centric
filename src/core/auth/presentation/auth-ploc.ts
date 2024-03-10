@@ -3,6 +3,8 @@ import { User } from "../domain/user";
 import { LoginUseCase } from "../domain/usecases/login";
 import { Task } from "data.task.ts";
 import { UserByIdUseCase } from "../domain/usecases/get-user-by-id";
+import { LogoutUseCase } from "../domain/usecases/logout";
+import { restClient } from "../../shared/rest-client";
 
 export type AuthState =
   | { kind: "user:out" }
@@ -21,6 +23,7 @@ export type AuthPloc = Ploc<AuthState> & {
 
 export function makeAuthPloc(
   loginUseCase: LoginUseCase,
+  logoutUseCase: LogoutUseCase,
   getUserById: UserByIdUseCase
 ): AuthPloc {
   const ploc = makePloc(authInitialState);
@@ -40,20 +43,28 @@ export function makeAuthPloc(
   return {
     ...ploc,
 
-    setLoggedIn: async (accessToken: string) => {
-      const user = extractUserFromToken(accessToken);
+    setLoggedIn: async () => {
+      try {
+        const accessToken = await restClient.callRefresh();
+        const user = extractUserFromToken(accessToken);
 
-      await getUserById(user.id)
-        .map((user) => ploc.changeState({ kind: "user:in", user, accessToken }))
-        .orElse((err) =>
-          Task.of(
-            ploc.changeState({
-              kind: "user:error",
-              errorMsg: err.error.message,
-            })
+        await getUserById(user.id)
+          .map((user) =>
+            ploc.changeState({ kind: "user:in", user, accessToken })
           )
-        )
-        .toPromise();
+          .orElse((err) =>
+            Task.of(
+              ploc.changeState({
+                kind: "user:error",
+                errorMsg: err.error.message,
+              })
+            )
+          )
+          .toPromise();
+      } catch (error) {
+        console.log("user is not logged in");
+        // ploc.changeState({ kind: "user:out" });
+      }
     },
 
     login: async (email, password) => {
@@ -74,7 +85,17 @@ export function makeAuthPloc(
     },
 
     logout: async () => {
-      ploc.changeState({ kind: "user:out" });
+      await logoutUseCase()
+        .map(() => ploc.changeState({ kind: "user:out" }))
+        .orElse((err) =>
+          Task.of(
+            ploc.changeState({
+              kind: "user:error",
+              errorMsg: err.error.message,
+            })
+          )
+        )
+        .toPromise();
     },
   };
 }

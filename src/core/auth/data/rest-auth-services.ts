@@ -2,11 +2,26 @@ import { Task } from "data.task.ts";
 import {
   GetUserByIdService,
   LoginService,
+  LogoutService,
   RegisterService,
 } from "../domain/auth-services";
 import { DataError } from "../../shared/domain/data-error";
 import { restClient } from "../../shared/rest-client";
 import { User } from "../domain/user";
+
+export const makeLogoutService = (): LogoutService => {
+  return () =>
+    Task.fromLazyPromise(() => {
+      return restClient
+        .mutate("/user/logout", {
+          mode: "create",
+          body: {},
+        })
+        .then(() => {});
+    }).rejectMap(
+      (unk): DataError => ({ error: unk as Error, kind: "UnexpectedError" })
+    );
+};
 
 export const makeRestLoginService = (): LoginService => {
   return (email, password) => {

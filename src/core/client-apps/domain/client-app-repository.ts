@@ -7,5 +7,11 @@ export interface ClientAppsRepository {
     name: string;
     description: string;
   }): Task<DataError, ClientApp>;
+
   getByUserId: (accessToken?: string) => Task<DataError, ClientApp[]>;
+
+  updateById: (
+    id: string,
+    params: Partial<Omit<ClientApp, "id">>
+  ) => Task<DataError, ClientApp>;
 }

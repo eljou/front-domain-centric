@@ -15,6 +15,8 @@ export type LoginService = (
   password: string
 ) => Task<DataError, { user: BackendUser; accessToken: string }>;
 
+export type LogoutService = () => Task<DataError, void>;
+
 export type RegisterService = (
   username: string,
   email: string,

@@ -11,9 +11,10 @@ export function HomePage() {
     clientApps.state.kind == "app:reloading" ||
     clientApps.state.kind == "app:success";
 
+  const getUserApps = () => clientApps.fetchUserApps().then(() => {});
+
   useEffect(() => {
-    if (auth.state.kind == "user:in" && !appsAreLoaded())
-      clientApps.fetchUserApps().then(() => {});
+    if (auth.state.kind == "user:in" && !appsAreLoaded()) getUserApps();
   }, [auth.state]);
 
   return (
@@ -21,19 +22,6 @@ export function HomePage() {
       <div className="hero-content text-center">
         <div className="max-w-md">
           <h1 className="text-5xl font-bold">Hello there</h1>
-          <button
-            className="btn btn-success"
-            onClick={async () => {
-              const res = await fetch("http://localhost:8080/user/refresh", {
-                method: "POST",
-                credentials: "include",
-              });
-              const test = await res.text();
-              console.log("🚀 ~ onClick={ ~ test:", test);
-            }}
-          >
-            testing cookies
-          </button>
           <p className="py-6">
             Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda
             excepturi exercitationem quasi. In deleniti eaque aut repudiandae et
@@ -51,6 +39,9 @@ export function HomePage() {
               <br />
 
               <CreateAppModal />
+
+              <hr />
+              <button onClick={getUserApps}>get apps</button>
             </div>
           )}
         </div>
